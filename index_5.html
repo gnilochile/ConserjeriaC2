@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141B20">
+<title>Conserjería — Condominio</title>
+<style>
+:root{--bg:#141B20;--panel:#1D272E;--panel-2:#25323B;--line:#33434E;
+  --ink:#EAF1F4;--muted:#8298A5;--ok:#C9F04A;--hold:#FFA23A;--alert:#FF6A57;--note:#6EC5FF}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+  height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;border-bottom:1px solid var(--line);background:var(--panel);flex:none}
+.mark{font-size:14px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.mark span{color:var(--ok)}
+.shift{text-align:right;font-size:10px;line-height:1.3;color:var(--muted)}
+.shift b{display:block;color:var(--ink);font-size:11.5px}
+.screen{padding:16px 16px 0;flex:1;display:none;flex-direction:column;overflow-y:auto}
+.screen.on{display:flex}
+.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:10.5px;
+  color:var(--muted);font-weight:600;margin-bottom:6px}
+h2{font-size:23px;font-weight:600;line-height:1.15;margin-bottom:14px}
+.guards{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.guard{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid var(--line);
+  border-radius:14px;background:var(--panel);width:100%;color:var(--ink);
+  font-family:inherit;font-size:15px;text-align:left}
+.guard[aria-pressed="true"]{border-color:var(--ok);background:var(--panel-2)}
+.ini{width:32px;height:32px;flex:none;border-radius:9px;background:var(--panel-2);
+  border:1px solid var(--line);display:grid;place-items:center;font-size:13px;
+  font-weight:700;color:var(--muted)}
+.guard[aria-pressed="true"] .ini{background:var(--ok);color:#141B20;border-color:var(--ok)}
+.pindots{display:flex;gap:9px;justify-content:center;margin:4px 0 14px}
+.pindot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--line)}
+.pindot.f{background:var(--ok);border-color:var(--ok)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.key{padding:13px 0;border-radius:11px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);font-size:19px;font-variant-numeric:tabular-nums}
+.key.ghost{border-color:transparent;background:transparent;font-size:13px;color:var(--muted)}
+.pinwrap.bad{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.menu{display:flex;flex-direction:column;gap:10px}
+.mbtn{padding:20px 16px;border-radius:16px;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink);text-align:left;font-family:inherit;width:100%}
+.mbtn b{display:block;font-size:21px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:3px}
+.mbtn span{font-size:12.5px;color:var(--muted);line-height:1.45}
+.pgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.parc{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  color:var(--ink);font-size:12.5px;font-variant-numeric:tabular-nums;
+  display:grid;place-items:center;position:relative;font-family:inherit;padding:0}
+.parc.sus::after{content:"";position:absolute;top:5px;right:5px;width:6px;height:6px;
+  border-radius:50%;background:var(--hold)}
+.parc.hasnote::before{content:"";position:absolute;bottom:5px;left:5px;width:6px;height:6px;
+  border-radius:50%;background:var(--note)}
+.parc.off{opacity:.28}
+.state{border-radius:18px;padding:18px;border:1px solid var(--line);background:var(--panel);
+  position:relative;overflow:hidden;margin-bottom:12px}
+.state::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--ok)}
+.state.hold::before{background:var(--hold)}
+.pnum{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.pstate{font-size:27px;font-weight:600;text-transform:uppercase;line-height:1.05;
+  margin:2px 0 8px;color:var(--ok)}
+.state.hold .pstate{color:var(--hold)}
+.script{background:var(--panel-2);border-radius:12px;padding:12px;font-size:13.5px;
+  line-height:1.5;border-left:3px solid var(--hold);margin-top:8px}
+.script .k{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--hold);margin-bottom:5px;font-weight:600}
+.nota{background:rgba(110,197,255,.09);border:1px solid rgba(110,197,255,.4);border-radius:12px;
+  padding:12px;margin-bottom:10px;font-size:13.5px;line-height:1.5;color:#CFE9FF}
+.nota .k{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--note);margin-bottom:5px;font-weight:600}
+.nota .exp{display:block;margin-top:7px;font-size:11px;color:var(--note);opacity:.85}
+.pre{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.prebtn{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--ok);
+  border-radius:11px;background:rgba(201,240,74,.08);width:100%;text-align:left;
+  color:var(--ink);font-family:inherit;font-size:13.5px}
+.prebtn small{display:block;color:var(--muted);font-size:10.5px;margin-top:1px}
+.calls{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.call{border:1px solid var(--line);border-radius:11px;background:var(--panel-2);overflow:hidden}
+.call.done{opacity:.45}
+.callmain{display:flex;align-items:center;gap:10px;padding:11px 12px;text-decoration:none;color:var(--ink)}
+.ord{width:22px;height:22px;flex:none;border-radius:6px;background:var(--line);display:grid;
+  place-items:center;font-size:11px;color:var(--ink)}
+.call .cn{flex:1;font-size:13px;line-height:1.3}
+.call .tel{font-size:12px;color:var(--ok);font-variant-numeric:tabular-nums}
+.callacts{display:flex;border-top:1px solid var(--line)}
+.callacts button{flex:1;padding:10px;border:0;background:transparent;color:var(--muted);
+  font-family:inherit;font-size:11.5px}
+.callacts button:first-child{color:var(--ok);border-right:1px solid var(--line)}
+label{display:block;font-size:11px;color:var(--muted);margin:12px 0 5px}
+input,select{width:100%;padding:13px;border-radius:11px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);font-family:inherit;font-size:16px}
+input::placeholder{color:#5C707C}
+.hint{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.45}
+#verdict{margin-top:10px;padding:12px;border-radius:12px;font-size:13.5px;line-height:1.5;display:none}
+#verdict.yes{display:block;background:rgba(201,240,74,.1);border:1px solid var(--ok);color:var(--ok)}
+#verdict.no{display:block;background:rgba(255,106,87,.1);border:1px solid var(--alert);color:#FFC5BB}
+.actions{margin-top:auto;position:sticky;bottom:0;
+  background:linear-gradient(to bottom,transparent,var(--bg) 22%);
+  padding:14px 0;display:flex;flex-direction:column;gap:8px}
+.btn{padding:16px;border-radius:13px;border:0;width:100%;font-family:inherit;
+  font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+  background:var(--ok);color:#141B20}
+.btn.hold{background:var(--hold)}
+.btn.sec{background:transparent;border:1px solid var(--line);color:var(--muted);
+  font-size:14px;letter-spacing:.04em;text-transform:none}
+.btn.danger{background:transparent;border:1px solid var(--alert);color:var(--alert);
+  font-size:14px;text-transform:none;letter-spacing:0}
+.btn:disabled{background:var(--panel-2);color:#5C707C}
+.tick{width:60px;height:60px;border-radius:50%;background:var(--ok);color:#141B20;
+  display:grid;place-items:center;font-size:30px;margin:22px auto 12px;font-weight:700}
+.tick.hold{background:var(--hold)}.tick.bad{background:var(--alert)}
+.savedname{text-align:center;font-size:22px;font-weight:600}
+.savedmeta{text-align:center;color:var(--muted);font-size:12.5px;margin-top:3px;line-height:1.5}
+.mail{margin:12px auto 0;max-width:300px;text-align:center;font-size:11.5px;color:var(--ok);
+  border:1px dashed var(--ok);border-radius:10px;padding:9px;line-height:1.4}
+.mail.no{color:var(--muted);border-color:var(--line)}
+.log{display:flex;flex-direction:column;gap:6px}
+.entry{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--panel);
+  border:1px solid var(--line);border-radius:11px;border-left:3px solid var(--ok);font-size:12.5px}
+.entry.hold{border-left-color:var(--hold)}
+.entry.bad{border-left-color:var(--alert)}
+.entry time{color:var(--muted);font-size:11px;padding-top:1px;font-variant-numeric:tabular-nums}
+.entry .n{flex:1;line-height:1.4}
+.entry .n small{display:block;color:var(--muted);font-size:10.5px;margin-top:2px}
+.tag{display:inline-block;padding:2px 6px;border-radius:5px;font-size:9.5px;
+  letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+  border:1px solid var(--line);color:var(--muted)}
+.foto{margin-top:10px;border:1px dashed var(--line);border-radius:12px;padding:14px;
+  text-align:center;color:var(--muted);font-size:13px}
+.foto img{max-width:100%;border-radius:9px;margin-top:8px;display:block}
+#stage{position:relative;background:#000;border-radius:16px;overflow:hidden;
+  border:1px solid var(--line);aspect-ratio:4/3;margin:10px 0 4px;display:none}
+#stage.on{display:block}
+#stage video{width:100%;height:100%;object-fit:cover;display:block}
+#stage canvas{display:none}
+.frame{position:absolute;inset:14% 10%;border:2px solid var(--ok);border-radius:10px;
+  box-shadow:0 0 0 100vmax rgba(0,0,0,.32);pointer-events:none}
+.frame span{position:absolute;bottom:-24px;left:0;right:0;text-align:center;
+  font-size:11px;color:var(--ok)}
+.leido{display:none;margin-top:8px;padding:10px 12px;border-radius:11px;
+  background:rgba(201,240,74,.1);border:1px solid var(--ok);color:var(--ok);font-size:12.5px}
+.leido.on{display:block}
+.leido.aviso{background:rgba(255,162,58,.1);border-color:var(--hold);color:var(--hold)}
+.leido b{display:block;font-size:14px;margin-bottom:2px}
+.pend{position:fixed;bottom:0;left:0;right:0;background:var(--hold);color:#141B20;
+  text-align:center;padding:7px;font-size:12px;font-weight:600;display:none;z-index:9}
+.pend.on{display:block}
+.firma{text-align:center;font-size:10px;color:#4A5A66;padding:10px 0 4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="mark">Conserjería<span>·</span>Portería</div>
+  <div class="shift" id="shiftbox"><b>Sin turno</b>Nadie a cargo</div>
+</div>
+
+<section class="screen on" id="s-turno">
+  <div class="eyebrow">Inicio de turno</div>
+  <h2>¿Quién está de turno?</h2>
+  <div class="guards" id="guards"><div class="hint">Cargando…</div></div>
+  <div class="pinwrap" id="pinwrap">
+    <div class="eyebrow" id="pinlabel">Clave de 4 dígitos</div>
+    <div class="pindots" id="dots"></div>
+    <div class="pad" id="pad"></div>
+  </div>
+  <div class="firma" id="firma1"></div>
+</section>
+
+<section class="screen" id="s-menu">
+  <div class="eyebrow">Turno activo</div>
+  <h2>¿Qué vas a registrar?</h2>
+  <div class="menu">
+    <button class="mbtn" id="mAcceso"><b>Acceso</b><span>Alguien pide entrar. Requiere autorización verificada.</span></button>
+    <button class="mbtn" id="mPaquete"><b>Paquetería</b><span>Llegó un envío. Custodia y aviso por correo.</span></button>
+    <button class="mbtn" id="mSolicitud"><b>Solicitud</b><span>Pedirle algo a la administración. Queda registrado y le llega por correo.</span></button>
+  </div>
+  <div class="actions"><button class="btn sec" id="closeBtn">Cerrar turno</button></div>
+</section>
+
+<section class="screen" id="s-parcela">
+  <div class="eyebrow" id="p-eyebrow">Acceso</div>
+  <h2>¿A qué parcela?</h2>
+  <div class="pgrid" id="pgrid"></div>
+  <div class="hint" id="p-hint"></div>
+  <div class="actions"><button class="btn sec" id="p-back">Volver</button></div>
+</section>
+
+<section class="screen" id="s-estado">
+  <div id="e-nota"></div>
+  <div class="state" id="stateCard">
+    <div class="pnum" id="e-num">Parcela —</div>
+    <div class="pstate" id="e-state">—</div>
+    <div id="e-body"></div>
+  </div>
+  <div id="verdict"></div>
+  <div class="actions" id="e-actions"></div>
+</section>
+
+<section class="screen" id="s-visita">
+  <div class="eyebrow" id="v-eyebrow">Autorizada</div>
+  <h2 id="v-title">Parcela —</h2>
+  <label for="v-name">Nombre de quien entra</label>
+  <input id="v-name" placeholder="Nombre y apellidos" autocomplete="off">
+  <label for="v-run">RUN <span style="opacity:.6">— opcional</span></label>
+  <input id="v-run" placeholder="12345678-9" autocomplete="off">
+  <div id="stage">
+    <video id="v" playsinline muted autoplay></video>
+    <canvas id="c"></canvas>
+    <div class="frame"><span id="scanmsg">Apunta al QR del reverso</span></div>
+  </div>
+  <div class="leido" id="leido"></div>
+  <button class="btn sec" id="camBtn" style="margin-top:10px">Escanear carnet</button>
+  <div class="hint">El QR del reverso entrega el RUN sin necesidad de internet.
+    El nombre no viene en el código: se escribe a mano.</div>
+  <label for="v-plate">Patente <span style="opacity:.6">— opcional</span></label>
+  <input id="v-plate" placeholder="JKLM34" maxlength="8" autocomplete="off">
+  <div class="actions">
+    <button class="btn" id="saveVisit">Registrar entrada</button>
+    <button class="btn sec" id="v-cancel">Cancelar</button>
+  </div>
+</section>
+
+<section class="screen" id="s-paquete">
+  <div class="eyebrow">Recepción</div>
+  <h2 id="k-title">Parcela —</h2>
+  <label for="k-courier">Courier</label>
+  <select id="k-courier">
+    <option>Chilexpress</option><option>Starken</option><option>Correos de Chile</option>
+    <option>Bluexpress</option><option>Shipit</option><option>Particular</option>
+  </select>
+  <label for="k-desc">Descripción</label>
+  <input id="k-desc" placeholder="Caja mediana, sobre…" autocomplete="off">
+  <div class="foto" id="fotoBox">
+    <button class="btn sec" id="fotoBtn" style="margin:0">Foto de la etiqueta</button>
+    <input type="file" id="fotoInput" accept="image/*" capture="environment" style="display:none">
+    <div id="fotoPrev"></div>
+  </div>
+  <div class="hint" id="k-hint"></div>
+  <div class="actions">
+    <button class="btn" id="savePack">Recibir y avisar</button>
+    <button class="btn sec" id="k-cancel">Cancelar</button>
+  </div>
+</section>
+
+<section class="screen" id="s-solicitud">
+  <div class="eyebrow">Solicitud a la administración</div>
+  <h2 id="q-title">Sin parcela</h2>
+  <label for="q-asunto">¿Qué necesitas?</label>
+  <select id="q-asunto">
+    <option>Corregir o completar datos de la parcela</option>
+    <option>Agregar un contacto</option>
+    <option>Cambiar el orden de llamada</option>
+    <option>Nueva nota para la parcela</option>
+    <option>Nueva preautorización</option>
+    <option>Problema con el servicio o la app</option>
+    <option>Otro</option>
+  </select>
+  <label for="q-quien">¿Quién lo pide? <span style="opacity:.6">— opcional</span></label>
+  <input id="q-quien" placeholder="El propietario, un visitante, tú mismo…" autocomplete="off">
+  <label for="q-detalle">Cuéntalo con tus palabras</label>
+  <input id="q-detalle" placeholder="Escribe aquí lo que hay que pedir" autocomplete="off">
+  <div class="hint">Queda registrada y le llega por correo a la administración.
+    Tú no puedes cambiar los datos: solo la administración los edita.</div>
+  <div class="actions">
+    <button class="btn" id="q-send">Enviar solicitud</button>
+    <button class="btn sec" id="q-cancel">Cancelar</button>
+  </div>
+</section>
+
+<section class="screen" id="s-saved">
+  <div class="tick" id="tick">&check;</div>
+  <div class="savedname" id="s-name">—</div>
+  <div class="savedmeta" id="s-meta">—</div>
+  <div id="s-mail"></div>
+  <div class="eyebrow" style="margin-top:22px">Registros de este turno</div>
+  <div class="log" id="log"></div>
+  <div class="actions">
+    <button class="btn" id="nextBtn">Siguiente</button>
+    <button class="btn sec" id="fromSavedClose">Cerrar turno</button>
+  </div>
+</section>
+
+<section class="screen" id="s-close">
+  <div class="eyebrow">Fin de turno</div>
+  <h2>Resumen</h2>
+  <div id="closeBody"></div>
+  <div class="actions">
+    <button class="btn" id="confirmClose">Cerrar turno</button>
+    <button class="btn sec" id="backBtn">Volver</button>
+  </div>
+</section>
+
+<div class="pend" id="pendBar"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+/* ------------------------------------------------------------------
+   CONFIGURACIÓN — lo único que se toca al desplegar.
+   url:   dirección /exec de la implementación de Apps Script.
+   clave: debe coincidir con CLAVE_API_() en Codigo.gs.
+   ------------------------------------------------------------------ */
+var CONFIG = {
+  url:   'https://script.google.com/macros/s/AKfycbwDrciOxs1cJXxTjbnFTOxFraHdOWk2qZhskZt-iuvK9uW6NxlnTbREFjtmtLTP9BOb/exec',
+  clave: '2350499d27e416dde2100774',
+  firma: 'Creado por GNilo'
+};
+
+var $ = function (i) { return document.getElementById(i); };
+var show = function (i) {
+  var n = document.querySelectorAll('.screen');
+  for (var k = 0; k < n.length; k++) n[k].classList.remove('on');
+  $(i).classList.add('on');
+  window.scrollTo(0, 0);
+};
+var esc = function (t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+};
+
+/**
+ * Puente con el Apps Script. Va como texto plano a propósito: así el
+ * navegador la trata como petición simple y no dispara un preflight
+ * OPTIONS, que Apps Script no sabe responder.
+ */
+function llamar(f, args) {
+  var cuerpo = { f: f, clave: CONFIG.clave };
+  for (var k in (args || {})) cuerpo[k] = args[k];
+  return fetch(CONFIG.url, {
+    method: 'POST', redirect: 'follow', body: JSON.stringify(cuerpo)
+  }).then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function (j) {
+    if (!j.ok) throw new Error(j.error || 'error del servidor');
+    return j.datos;
+  });
+}
+
+var conserjes = [], sel = null, pin = '', sesion = null;
+var log = [], cola = [], mapa = [];
+var modo = 'acceso', parc = null, ficha = null, fallidos = [], fotoData = '';
+var verificado = false;
+
+$('firma1').textContent = CONFIG.firma;
+
+// ---------- sesión y cola, que sobreviven a cerrar el navegador ----------
+try {
+  var g = localStorage.getItem('cc_sesion'); if (g) sesion = JSON.parse(g);
+  var q = localStorage.getItem('cc_cola');   if (q) cola = JSON.parse(q);
+  var l = localStorage.getItem('cc_log');    if (l) log = JSON.parse(l);
+} catch (e) {}
+
+function guardaLocal() {
+  try {
+    localStorage.setItem('cc_sesion', JSON.stringify(sesion));
+    localStorage.setItem('cc_cola', JSON.stringify(cola));
+    localStorage.setItem('cc_log', JSON.stringify(log));
+  } catch (e) {}
+}
+
+function pintaBarra() {
+  var b = $('pendBar');
+  if (cola.length) {
+    b.textContent = cola.length + ' registro(s) sin subir — se envían solos';
+    b.classList.add('on');
+  } else b.classList.remove('on');
+}
+
+function hora() {
+  var d = new Date();
+  return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+}
+
+// ---------- inicio de turno ----------
+llamar('conserjes').then(function (cs) {
+  conserjes = cs;
+  var box = $('guards');
+  box.innerHTML = '';
+  if (!cs.length) {
+    box.innerHTML = '<div class="hint">No hay conserjes cargados. Agrégalos en la ' +
+      'pestaña Conserjes de la planilla, con su clave de 4 dígitos.</div>';
+    return;
+  }
+  cs.forEach(function (x, k) {
+    var b = document.createElement('button');
+    b.className = 'guard';
+    b.setAttribute('aria-pressed', 'false');
+    var ini = x.nombre.split(' ').map(function (p) { return p[0]; }).slice(0, 2).join('');
+    b.innerHTML = '<span class="ini">' + esc(ini) + '</span>' + esc(x.nombre);
+    b.onclick = function () {
+      sel = k; pin = '';
+      var cs2 = box.children;
+      for (var j = 0; j < cs2.length; j++) cs2[j].setAttribute('aria-pressed', j === k);
+      pintaPin();
+    };
+    box.appendChild(b);
+  });
+}).catch(function () {
+  $('guards').innerHTML = '<div class="hint">No se pudo contactar al servidor. ' +
+    'Revisa la conexión y recarga la página.</div>';
+});
+
+for (var k = 0; k < 4; k++) {
+  var d = document.createElement('span'); d.className = 'pindot'; $('dots').appendChild(d);
+}
+[1,2,3,4,5,6,7,8,9,'borrar',0,''].forEach(function (v) {
+  var b = document.createElement('button');
+  b.className = 'key' + (typeof v === 'string' ? ' ghost' : '');
+  b.textContent = v;
+  if (v === '') b.disabled = true;
+  b.onclick = function () {
+    if (sel === null) { $('pinlabel').textContent = 'Primero elige quién está de turno'; return; }
+    if (v === 'borrar') pin = pin.slice(0, -1);
+    else if (pin.length < 4) pin += v;
+    pintaPin();
+    if (pin.length === 4) setTimeout(intentaAbrir, 150);
+  };
+  $('pad').appendChild(b);
+});
+
+function pintaPin() {
+  var ds = $('dots').children;
+  for (var i = 0; i < ds.length; i++) ds[i].classList.toggle('f', i < pin.length);
+  $('pinlabel').textContent = 'Clave de 4 dígitos';
+}
+
+function intentaAbrir() {
+  $('pinlabel').textContent = 'Verificando…';
+  llamar('abrirTurno', { nombre: conserjes[sel].nombre, pin: pin }).then(function (r) {
+    if (!r.ok) {
+      $('pinwrap').classList.add('bad');
+      $('pinlabel').textContent = r.msg;
+      setTimeout(function () {
+        $('pinwrap').classList.remove('bad'); pin = '';
+        var ds = $('dots').children;
+        for (var i = 0; i < ds.length; i++) ds[i].classList.remove('f');
+      }, 400);
+      return;
+    }
+    sesion = { turnoId: r.turnoId, nombre: r.nombre, desde: hora() };
+    log = []; guardaLocal(); pintaSesion(); cargaMapa(); show('s-menu');
+  }).catch(function () {
+    $('pinlabel').textContent = 'Sin conexión — reintenta';
+  });
+}
+
+function pintaSesion() {
+  if (!sesion) { $('shiftbox').innerHTML = '<b>Sin turno</b>Nadie a cargo'; return; }
+  $('shiftbox').innerHTML = '<b>' + esc(sesion.nombre.split(' ')[0]) +
+    ' a cargo</b>Turno desde ' + sesion.desde;
+}
+if (sesion) { pintaSesion(); cargaMapa(); show('s-menu'); }
+pintaBarra();
+
+// ---------- grilla de parcelas ----------
+function cargaMapa() {
+  llamar('mapa').then(function (m) { mapa = m; }).catch(function () {});
+}
+
+function pintaGrilla() {
+  var g = $('pgrid');
+  g.innerHTML = '';
+  // En acceso solo las internas: las externas no pasan por portería.
+  var lista = mapa.filter(function (p) { return modo === 'paquete' || p.interna; });
+  if (!lista.length) {
+    g.innerHTML = '<div class="hint" style="grid-column:1/-1">Cargando parcelas…</div>';
+    return;
+  }
+  lista.forEach(function (p) {
+    var b = document.createElement('button');
+    b.className = 'parc' + (p.servicio ? '' : ' sus') + (p.nota ? ' hasnote' : '');
+    b.textContent = p.parcela;
+    b.onclick = function () { abreParcela(p.parcela); };
+    g.appendChild(b);
+  });
+  $('p-hint').innerHTML = modo === 'paquete'
+    ? 'Ámbar arriba = sin servicio de custodia · Azul abajo = tiene nota.'
+    : 'Solo parcelas internas. Ámbar = sin conserjería · Azul = tiene nota.';
+}
+
+$('mAcceso').onclick = function () {
+  modo = 'acceso'; $('p-eyebrow').textContent = 'Acceso'; pintaGrilla(); show('s-parcela');
+};
+$('mPaquete').onclick = function () {
+  modo = 'paquete'; $('p-eyebrow').textContent = 'Paquetería'; pintaGrilla(); show('s-parcela');
+};
+$('p-back').onclick = function () { show('s-menu'); };
+
+// ---------- ficha de la parcela ----------
+function abreParcela(n) {
+  parc = n; fallidos = []; fotoData = '';
+  $('verdict').className = ''; $('verdict').textContent = '';
+  $('e-num').textContent = 'Parcela ' + n;
+  $('e-nota').innerHTML = '';
+  $('e-body').innerHTML = '<div class="hint">Consultando…</div>';
+  $('e-actions').innerHTML = '';
+  show('s-estado');
+
+  llamar('parcela', { parcela: n }).then(function (f) {
+    ficha = f;
+    if (!f.existe) {
+      $('e-state').textContent = 'No encontrada';
+      $('e-body').innerHTML = '<div class="hint">Esa parcela no está en la nómina.</div>';
+      $('e-actions').innerHTML = '<button class="btn sec" id="a0">Volver</button>';
+      $('a0').onclick = function () { show('s-parcela'); };
+      return;
+    }
+    $('stateCard').classList.toggle('hold', !f.servicio);
+    $('e-nota').innerHTML = notasHTML(f);
+    if (modo === 'paquete') vistaPaquete(f); else vistaAcceso(f);
+  }).catch(function () {
+    $('e-body').innerHTML = '<div class="hint">Sin conexión. Reintenta.</div>';
+    $('e-actions').innerHTML = '<button class="btn sec" id="a0">Volver</button>';
+    $('a0').onclick = function () { show('s-parcela'); };
+  });
+}
+
+/** Solo las notas vigentes. Una nota vencida no se le muestra al conserje. */
+function notasHTML(f) {
+  return f.notas.filter(function (o) { return o.vigente; }).map(function (o) {
+    return '<div class="nota"><span class="k">Nota de la administración</span>' +
+      esc(o.texto) + '<span class="exp">' +
+      (o.permanente ? 'Sin fecha de término' : 'Vigente hasta el ' + esc(o.hasta)) +
+      (o.por ? ' · anotada por ' + esc(o.por) : '') + '</span></div>';
+  }).join('');
+}
+
+function preHTML(f) {
+  var viv = f.preautorizados.filter(function (x) { return x.vigente; });
+  var ven = f.preautorizados.filter(function (x) { return !x.vigente; });
+  var h = '';
+  if (viv.length) {
+    h += '<div style="margin-top:12px"><div class="eyebrow" style="margin-bottom:4px">' +
+      'Ya autorizados — no hace falta llamar</div><div class="pre">' +
+      viv.map(function (x, i) {
+        return '<button class="prebtn" data-pre="' + i + '">&check; &nbsp;' + esc(x.nombre) +
+          '<small>' + (x.permanente ? 'autorización permanente' : 'hasta el ' + esc(x.hasta)) +
+          '</small></button>';
+      }).join('') + '</div></div>';
+  }
+  if (ven.length) {
+    h += '<div class="hint" style="margin-top:10px;color:var(--alert)">' +
+      ven.map(function (x) {
+        return esc(x.nombre) + ' tenía autorización hasta el ' + esc(x.hasta) +
+               ' — ya venció, hay que llamar igual.';
+      }).join(' ') + '</div>';
+  }
+  return h;
+}
+
+function bindPre(f) {
+  var viv = f.preautorizados.filter(function (x) { return x.vigente; });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-pre]'), function (b) {
+    b.onclick = function () {
+      var x = viv[+b.dataset.pre];
+      aVisita('Preautorizado por la administración · ' + x.nombre, x.nombre, x.run);
+    };
+  });
+}
+
+function callsHTML(f) {
+  if (f.sinTelefono) {
+    return '<div class="script" style="border-left-color:var(--alert)">' +
+      '<span class="k" style="color:var(--alert)">Sin contacto registrado</span>' +
+      'Esta parcela no tiene ningún teléfono en la nómina, así que no hay a quién ' +
+      'pedirle autorización. No se puede autorizar el ingreso. Avisa a la administración.</div>';
+  }
+  return '<div class="calls">' + f.contactos.map(function (c, i) {
+    if (!c.celular) return '';
+    return '<div class="call" id="call' + i + '">' +
+      '<a class="callmain" href="tel:' + esc(c.celular.replace(/\s/g, '')) + '">' +
+      '<span class="ord">' + (i + 1) + '</span>' +
+      '<span class="cn">' + esc(c.nombre) + '</span>' +
+      '<span class="tel">' + esc(c.celular) + '</span></a>' +
+      '<div class="callacts"><button data-ok="' + i + '">Este autorizó</button>' +
+      '<button data-no="' + i + '">No contestó</button></div></div>';
+  }).join('') + '</div>';
+}
+
+function bindCalls(f) {
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ok]'), function (b) {
+    b.onclick = function () {
+      var c = f.contactos[+b.dataset.ok];
+      aVisita('Autorizó ' + c.nombre, c.nombre, '');
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-no]'), function (b) {
+    b.onclick = function () {
+      var c = f.contactos[+b.dataset.no];
+      if (fallidos.indexOf(c.nombre) < 0) fallidos.push(c.nombre);
+      $('call' + b.dataset.no).classList.add('done');
+    };
+  });
+}
+
+function vistaAcceso(f) {
+  $('e-state').textContent = f.servicio ? 'Con servicio' : 'Sin conserjería';
+
+  if (f.servicio) {
+    $('e-body').innerHTML = preHTML(f) +
+      (f.sinTelefono ? '' :
+        '<div style="font-size:13px;color:var(--muted);line-height:1.5;margin-top:12px">' +
+        'Llama en orden. Marca quién autorizó o quién no contestó.</div>') +
+      callsHTML(f);
+    $('e-actions').innerHTML =
+      '<button class="btn danger" id="a2">Nadie autoriza — no entra</button>' +
+      '<button class="btn sec" id="aq">Pedirle algo a la administración</button>' +
+      '<button class="btn sec" id="a0">Volver</button>';
+    bindPre(f); bindCalls(f);
+    $('a2').onclick = function () {
+      noAutoriza(f.sinTelefono ? 'No autorizado · sin contacto registrado'
+                               : 'No autorizado · nadie contestó');
+    };
+  } else {
+    var d4 = f.contactos.filter(function (c) { return !!c.celular; })
+                        .map(function (c) { return c.celular.replace(/\s/g, '').slice(-4); });
+    $('e-body').innerHTML = preHTML(f) +
+      '<div class="script"><span class="k">El residente debe llamar primero</span>' +
+      'Esta parcela no tiene servicio de conserjería. El propietario debe haber llamado ' +
+      'a portería. Verifica los últimos 4 dígitos del número que llamó.</div>' +
+      '<label for="dig">Últimos 4 dígitos del número que llamó</label>' +
+      '<input id="dig" inputmode="numeric" maxlength="4" placeholder="0000">';
+    $('e-actions').innerHTML =
+      '<button class="btn hold" id="a1">Verificar</button>' +
+      '<button class="btn danger" id="a2">No llamó nadie — no entra</button>' +
+      '<button class="btn sec" id="aq">Pedirle algo a la administración</button>' +
+      '<button class="btn sec" id="a0">Volver</button>';
+    bindPre(f);
+    $('a1').onclick = function () {
+      var v = ($('dig').value || '').trim();
+      var idx = d4.indexOf(v);
+      $('verdict').className = idx >= 0 ? 'yes' : 'no';
+      if (idx >= 0) {
+        var quien = f.contactos.filter(function (c) { return !!c.celular; })[idx];
+        $('verdict').textContent = 'Número reconocido — ' + quien.nombre +
+          '. Puede autorizar.';
+        $('e-actions').innerHTML = '<button class="btn" id="b1">Registrar entrada</button>' +
+          '<button class="btn sec" id="b0">Volver</button>';
+        $('b1').onclick = function () {
+          aVisita('Autorizó ' + quien.nombre + ' · número verificado', quien.nombre, '');
+        };
+        $('b0').onclick = function () { show('s-parcela'); };
+      } else {
+        $('verdict').textContent = 'Número no reconocido. No se acepta: el propietario ' +
+          'debe apersonarse en portería.';
+      }
+    };
+    $('a2').onclick = function () { noAutoriza('No autorizado · sin aviso previo'); };
+  }
+  var q = $('aq'); if (q) q.onclick = function () { aSolicitud(parc); };
+  $('a0').onclick = function () { show('s-parcela'); };
+}
+
+function vistaPaquete(f) {
+  $('e-state').textContent = f.servicio ? 'Recibe paquetes' : 'Sin custodia';
+  if (f.servicio) {
+    $('e-body').innerHTML = '<div style="font-size:13px;color:var(--muted);line-height:1.5">' +
+      'Se recibe en custodia. ' +
+      (f.correos.length
+        ? 'Se avisa por correo a ' + f.correos.length + ' contacto(s).'
+        : '<span style="color:var(--hold)">Esta parcela no tiene correo registrado: ' +
+          'queda en custodia pero no se puede avisar.</span>') +
+      '</div>';
+    $('e-actions').innerHTML = '<button class="btn" id="a1">Recibir paquete</button>' +
+      '<button class="btn sec" id="aq">Pedirle algo a la administración</button>' +
+      '<button class="btn sec" id="a0">Volver</button>';
+    $('a1').onclick = function () {
+      $('k-title').textContent = 'Parcela ' + parc;
+      $('k-desc').value = ''; fotoData = ''; $('fotoPrev').innerHTML = '';
+      $('k-hint').textContent = f.correos.length
+        ? 'El aviso sale al confirmar.' : 'No se enviará aviso: falta el correo.';
+      show('s-paquete');
+    };
+  } else {
+    $('e-body').innerHTML = '<div class="script"><span class="k">Dígale al courier</span>' +
+      'Esta parcela no cuenta con servicio de custodia. No podemos recibir el envío; ' +
+      'debe coordinarlo directamente con el destinatario.</div>' +
+      '<div class="hint" style="margin-top:10px">No se envía aviso por correo en este caso.</div>';
+    $('e-actions').innerHTML = '<button class="btn hold" id="a1">Registrar que no se recibió</button>' +
+      '<button class="btn sec" id="aq">Pedirle algo a la administración</button>' +
+      '<button class="btn sec" id="a0">Volver</button>';
+    $('a1').onclick = function () {
+      guarda({ tipo: 'Paquetería', resultado: 'No recibido · sin servicio de custodia' },
+             'hold', 'Envío no recibido');
+    };
+  }
+  var q2 = $('aq'); if (q2) q2.onclick = function () { aSolicitud(parc); };
+  $('a0').onclick = function () { show('s-parcela'); };
+}
+
+// ---------- registro de visita ----------
+function aVisita(porque, quien, run) {
+  $('v-title').textContent = 'Parcela ' + parc;
+  $('v-eyebrow').textContent = porque;
+  $('v-name').value = ''; $('v-run').value = run || ''; $('v-plate').value = '';
+  $('v-name').dataset.autorizo = quien || '';
+  $('v-name').style.borderColor = '';
+  verificado = false;
+  $('leido').className = 'leido';
+  apaga();
+  show('s-visita');
+}
+
+$('saveVisit').onclick = function () {
+  var n = $('v-name').value.trim();
+  if (!n) { $('v-name').focus(); $('v-name').style.borderColor = '#FF6A57'; return; }
+  guarda({
+    tipo: 'Acceso',
+    resultado: 'Autorizado' + (verificado ? ' · carnet leído' : ''),
+    verificado: verificado,
+    nombre: n,
+    run: $('v-run').value.trim(),
+    patente: $('v-plate').value.trim(),
+    autorizo: $('v-name').dataset.autorizo,
+    noContestaron: fallidos
+  }, 'ok', n);
+};
+$('v-cancel').onclick = function () { apaga(); show('s-parcela'); };
+
+function noAutoriza(motivo) {
+  guarda({
+    tipo: 'Acceso', resultado: motivo, noContestaron: fallidos
+  }, 'bad', 'Acceso denegado');
+}
+
+// ---------- lectura del carnet ----------
+var stream = null, track = null, det = null, escaneando = false;
+
+$('camBtn').onclick = function () {
+  if (stream) { apaga(); return; }
+  enciende();
+};
+
+async function enciende() {
+  if (stream) return;
+  $('stage').classList.add('on');
+  $('scanmsg').textContent = 'Pidiendo permiso…';
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' },
+               width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+  } catch (e) {
+    $('scanmsg').textContent = 'No se pudo abrir la cámara: ' + e.name;
+    return;
+  }
+  var v = $('v'); v.srcObject = stream; await v.play();
+  track = stream.getVideoTracks()[0];
+  var cap = track.getCapabilities ? track.getCapabilities() : {};
+  try {
+    // Menos exposición y foco continuo: el plástico del carnet refleja
+    // y con luz de frente el QR se lava.
+    var adv = [];
+    if (cap.exposureCompensation)
+      adv.push({ exposureCompensation: Math.max(cap.exposureCompensation.min, -1.5) });
+    if (cap.focusMode && cap.focusMode.indexOf('continuous') >= 0)
+      adv.push({ focusMode: 'continuous' });
+    if (adv.length) await track.applyConstraints({ advanced: adv });
+  } catch (e) {}
+  if ('BarcodeDetector' in window) {
+    try { det = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { det = null; }
+  }
+  $('camBtn').textContent = 'Apagar cámara';
+  $('scanmsg').textContent = 'Apunta al QR del reverso';
+  escaneando = true; bucle();
+}
+
+function apaga() {
+  escaneando = false;
+  if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+  stream = null; track = null;
+  $('stage').classList.remove('on');
+  $('camBtn').textContent = 'Escanear carnet';
+}
+
+async function bucle() {
+  if (!escaneando || !stream) return;
+  var v = $('v'), c = $('c');
+  if (v.videoWidth) {
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    var ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    var txt = null;
+    try {
+      if (det) { var r = await det.detect(c); if (r.length) txt = r[0].rawValue; }
+      else {
+        var im = ctx.getImageData(0, 0, c.width, c.height);
+        var q = jsQR(im.data, c.width, c.height);
+        if (q) txt = q.data;
+      }
+    } catch (e) {}
+    if (txt) { leidoQR(txt); return; }
+  }
+  requestAnimationFrame(bucle);
+}
+
+function leidoQR(txt) {
+  var run = (txt.match(/RUN=([0-9kK\-]+)/i) || [])[1] || '';
+  if (!run) { $('scanmsg').textContent = 'Ese código no es un carnet'; return; }
+  apaga();
+  if (navigator.vibrate) navigator.vibrate(60);
+  $('v-run').value = run;
+  verificado = true;
+  $('leido').className = 'leido on';
+  $('leido').innerHTML = '<b>Identidad leída del carnet</b>' + esc(run) + ' · buscando…';
+  reconoce(run);
+}
+
+/**
+ * Pregunta si el sistema ya conoce ese RUN. No hay lista de personas:
+ * busca en las preautorizaciones y en entradas anteriores, para que el
+ * conserje no reescriba el mismo nombre cada semana.
+ */
+function reconoce(run) {
+  llamar('buscarRun', { run: run, parcela: parc }).then(function (r) {
+    if (!r.encontrado) {
+      $('leido').innerHTML = '<b>Identidad leída del carnet</b>' + esc(run) +
+        ' · primera vez, escribe el nombre';
+      $('v-name').focus();
+      return;
+    }
+    // Solo se propone: el conserje puede corregirlo si se equivocaron antes.
+    if (!$('v-name').value.trim()) $('v-name').value = r.nombre;
+
+    if (r.origen === 'preautorizacion') {
+      if (r.vigente) {
+        $('leido').className = 'leido on';
+        $('leido').innerHTML = '<b>' + esc(r.nombre) + '</b>' +
+          'Preautorizado para la parcela ' + esc(r.parcela) +
+          (r.permanente ? ' · autorización permanente' : ' · hasta el ' + esc(r.hasta)) +
+          (r.deEstaParcela ? '' : ' — ojo: es de OTRA parcela');
+      } else {
+        $('leido').className = 'leido on aviso';
+        $('leido').innerHTML = '<b>' + esc(r.nombre) + '</b>' +
+          'Tenía autorización para la parcela ' + esc(r.parcela) +
+          ' hasta el ' + esc(r.hasta) + ' — ya venció, hay que autorizar igual.';
+      }
+    } else {
+      $('leido').className = 'leido on';
+      $('leido').innerHTML = '<b>' + esc(r.nombre) + '</b>' +
+        'Ya había entrado: última vez el ' + esc(r.ultimaFecha) + ' a las ' +
+        esc(r.ultimaHora) + ' (parcela ' + esc(r.parcela) + ')' +
+        (r.veces > 1 ? ' · ' + r.veces + ' visitas registradas' : '');
+    }
+  }).catch(function () {
+    $('leido').innerHTML = '<b>Identidad leída del carnet</b>' + esc(run) +
+      ' · sin conexión para buscar el nombre';
+  });
+}
+
+// ---------- foto de la etiqueta ----------
+$('fotoBtn').onclick = function () { $('fotoInput').click(); };
+$('fotoInput').onchange = function (ev) {
+  var file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  $('fotoPrev').innerHTML = '<div class="hint">Preparando la foto…</div>';
+  reduce(file, function (dataUrl) {
+    fotoData = dataUrl;
+    $('fotoPrev').innerHTML = '<img src="' + dataUrl + '" alt="Etiqueta">';
+  });
+};
+
+/**
+ * La cámara entrega fotos de varios megas. Sin reducirlas, el envío al
+ * servidor falla y se pierde el registro del paquete por culpa de la imagen.
+ * 1280px de lado mayor y calidad 0.7 dejan la etiqueta perfectamente legible.
+ */
+function reduce(file, listo) {
+  var img = new Image();
+  img.onload = function () {
+    var max = 1280;
+    var e = Math.min(1, max / Math.max(img.width, img.height));
+    var c = document.createElement('canvas');
+    c.width = Math.round(img.width * e);
+    c.height = Math.round(img.height * e);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    listo(c.toDataURL('image/jpeg', 0.7));
+    URL.revokeObjectURL(img.src);
+  };
+  img.onerror = function () {
+    $('fotoPrev').innerHTML = '<div class="hint">No se pudo leer la foto.</div>';
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+$('savePack').onclick = function () {
+  guarda({
+    tipo: 'Paquetería',
+    resultado: 'Recibido en custodia',
+    courier: $('k-courier').value,
+    detalle: $('k-desc').value.trim(),
+    avisar: true,
+    foto: fotoData
+  }, 'ok', $('k-desc').value.trim() || 'Paquete');
+};
+$('k-cancel').onclick = function () { show('s-parcela'); };
+
+// ---------- guardar ----------
+function guarda(datos, tipoVisual, titulo) {
+  var mov = {
+    parcela: parc, tipo: datos.tipo, resultado: datos.resultado,
+    nombre: datos.nombre || '', run: datos.run || '', patente: datos.patente || '',
+    courier: datos.courier || '', detalle: datos.detalle || '',
+    autorizo: datos.autorizo || '', noContestaron: datos.noContestaron || [],
+    verificado: !!datos.verificado,
+    avisar: !!datos.avisar, foto: datos.foto || '',
+    registradoPor: sesion.nombre, turnoId: sesion.turnoId
+  };
+
+  var botones = document.querySelectorAll('.actions .btn');
+  for (var i = 0; i < botones.length; i++) botones[i].disabled = true;
+
+  llamar('guardar', { mov: mov })
+    .then(function (r) { hecho(mov, tipoVisual, titulo, r.aviso); })
+    .catch(function () {
+      // La foto no se guarda en la cola: ocuparía todo el espacio del
+      // navegador. Se pierde la imagen, nunca el registro.
+      var liviano = JSON.parse(JSON.stringify(mov));
+      liviano.foto = '';
+      cola.push(liviano); guardaLocal(); pintaBarra();
+      hecho(mov, tipoVisual, titulo, 'pendiente');
+    })
+    .then(function () {
+      for (var i = 0; i < botones.length; i++) botones[i].disabled = false;
+    });
+}
+
+function hecho(mov, tipoVisual, titulo, aviso) {
+  var e = {
+    t: hora(), p: mov.parcela, titulo: titulo, k: tipoVisual,
+    meta: mov.resultado +
+      (mov.autorizo ? ' · autorizó ' + mov.autorizo : '') +
+      (mov.noContestaron.length ? ' · no contestaron: ' + mov.noContestaron.join(', ') : '') +
+      (mov.tipo === 'Acceso' ? (mov.verificado ? ' · carnet leído' : ' · sin verificar') : '') +
+      (mov.patente ? ' · ' + mov.patente : '') +
+      (mov.courier ? ' · ' + mov.courier : '')
+  };
+  log.push(e); guardaLocal();
+
+  var t = $('tick');
+  t.className = 'tick' + (tipoVisual === 'ok' ? '' : ' ' + tipoVisual);
+  t.innerHTML = tipoVisual === 'ok' ? '&check;' : '!';
+  $('s-name').textContent = titulo;
+  $('s-meta').textContent = 'Parcela ' + mov.parcela + ' · ' + e.meta + ' · ' + e.t;
+
+  var m = '';
+  if (mov.tipo === 'Paquetería' && mov.avisar) {
+    if (aviso === 'SI') m = '<div class="mail">Aviso enviado al correo de la parcela ' + mov.parcela + '</div>';
+    else if (aviso === 'pendiente') m = '<div class="mail no">Sin conexión: el registro y el aviso salen al reconectar</div>';
+    else m = '<div class="mail no">No se envió aviso: la parcela no tiene correo registrado</div>';
+  }
+  if (mov.foto && aviso !== 'pendiente') {
+    m += '<div class="mail no" style="margin-top:6px">Foto de la etiqueta guardada</div>';
+  } else if (mov.foto) {
+    m += '<div class="mail no" style="margin-top:6px">La foto no se pudo guardar sin conexión</div>';
+  }
+  $('s-mail').innerHTML = m;
+
+  $('log').innerHTML = log.slice().reverse().map(function (x) {
+    return '<div class="entry ' + (x.k === 'ok' ? '' : x.k) + '"><time>' + x.t + '</time>' +
+      '<span class="n"><span class="tag">P' + esc(x.p) + '</span> ' + esc(x.titulo) +
+      '<small>' + esc(x.meta) + '</small></span></div>';
+  }).join('');
+  show('s-saved');
+}
+
+$('nextBtn').onclick = function () { show('s-menu'); };
+
+// ---------- solicitudes a la administración ----------
+function aSolicitud(parcela) {
+  $('q-title').textContent = parcela ? 'Parcela ' + parcela : 'Sin parcela';
+  $('q-title').dataset.parcela = parcela || '';
+  $('q-quien').value = ''; $('q-detalle').value = '';
+  $('q-detalle').style.borderColor = '';
+  show('s-solicitud');
+}
+$('mSolicitud').onclick = function () { aSolicitud(''); };
+$('q-cancel').onclick = function () { show('s-menu'); };
+
+$('q-send').onclick = function () {
+  var t = $('q-detalle').value.trim();
+  if (!t) { $('q-detalle').focus(); $('q-detalle').style.borderColor = '#FF6A57'; return; }
+  var b = $('q-send'); b.disabled = true; b.textContent = 'Enviando…';
+  llamar('solicitud', { sol: {
+    parcela: $('q-title').dataset.parcela,
+    asunto: $('q-asunto').value,
+    detalle: t,
+    dePartede: $('q-quien').value.trim(),
+    registradoPor: sesion.nombre,
+    turnoId: sesion.turnoId
+  }}).then(function (r) {
+    b.disabled = false; b.textContent = 'Enviar solicitud';
+    var e = { t: hora(), p: $('q-title').dataset.parcela || '—',
+      titulo: 'Solicitud enviada', k: 'hold',
+      meta: $('q-asunto').value + (r.enviado ? '' : ' · el correo no salió, pero quedó registrada') };
+    log.push(e); guardaLocal();
+    $('tick').className = 'tick hold'; $('tick').textContent = '!';
+    $('s-name').textContent = 'Solicitud enviada';
+    $('s-meta').textContent = e.meta + ' · ' + e.t;
+    $('s-mail').innerHTML = r.enviado
+      ? '<div class="mail">La administración ya recibió el correo</div>'
+      : '<div class="mail no">Quedó registrada. El correo no salió, revísalo con la administración.</div>';
+    $('log').innerHTML = log.slice().reverse().map(function (x) {
+      return '<div class="entry ' + (x.k === 'ok' ? '' : x.k) + '"><time>' + x.t + '</time>' +
+        '<span class="n"><span class="tag">P' + esc(x.p) + '</span> ' + esc(x.titulo) +
+        '<small>' + esc(x.meta) + '</small></span></div>';
+    }).join('');
+    show('s-saved');
+  }).catch(function () {
+    b.disabled = false; b.textContent = 'Enviar solicitud';
+    $('q-detalle').style.borderColor = '#FF6A57';
+    alertaSuave('No se pudo enviar. Revisa la señal y reintenta.');
+  });
+};
+
+function alertaSuave(t) {
+  var d = document.createElement('div');
+  d.className = 'hint';
+  d.style.cssText = 'color:var(--alert);margin-top:8px';
+  d.textContent = t;
+  var prev = $('s-solicitud').querySelector('.hint[data-tmp]');
+  if (prev) prev.remove();
+  d.setAttribute('data-tmp', '1');
+  $('q-detalle').parentNode.insertBefore(d, $('q-detalle').nextSibling);
+  setTimeout(function () { d.remove(); }, 5000);
+}
+
+// ---------- cierre de turno ----------
+function abreCierre() {
+  $('closeBody').innerHTML = '<div class="hint">Revisando…</div>';
+  show('s-close');
+  llamar('cerrarTurno', { turnoId: sesion.turnoId }).then(function (r) {
+    $('closeBody').innerHTML =
+      '<dl style="display:flex;flex-direction:column;gap:8px;font-size:14px">' +
+      fila('Registros del turno', r.total) +
+      fila('Accesos', r.accesos) +
+      fila('Paquetes', r.paquetes) +
+      fila('No autorizados', r.rechazos, r.rechazos > 0) +
+      fila('Turno a cargo de', sesion.nombre) + '</dl>' +
+      (cola.length ? '<div class="hint" style="margin-top:12px;color:var(--hold)">' +
+        'Quedan ' + cola.length + ' registro(s) sin subir. Deja la página abierta con ' +
+        'señal un momento antes de cerrar.</div>' : '');
+  }).catch(function () {
+    $('closeBody').innerHTML = '<div class="hint">Sin conexión. Puedes cerrar igual, ' +
+      'el turno se ajusta al reconectar.</div>';
+  });
+}
+function fila(k, v, alerta) {
+  return '<div style="display:flex;justify-content:space-between;gap:12px">' +
+    '<dt style="color:var(--muted)">' + k + '</dt>' +
+    '<dd style="font-weight:600' + (alerta ? ';color:var(--alert)' : '') + '">' +
+    esc(v) + '</dd></div>';
+}
+$('closeBtn').onclick = abreCierre;
+$('fromSavedClose').onclick = abreCierre;
+$('backBtn').onclick = function () { show('s-menu'); };
+$('confirmClose').onclick = function () {
+  sesion = null; log = []; pin = ''; sel = null;
+  guardaLocal(); pintaSesion();
+  var cs = $('guards').children;
+  for (var j = 0; j < cs.length; j++) cs[j].setAttribute('aria-pressed', 'false');
+  var ds = $('dots').children;
+  for (var i = 0; i < ds.length; i++) ds[i].classList.remove('f');
+  show('s-turno');
+};
+
+// ---------- reintento de la cola ----------
+setInterval(function () {
+  if (!cola.length) return;
+  llamar('guardar', { mov: cola[0] }).then(function () {
+    cola.shift(); guardaLocal(); pintaBarra();
+  }).catch(function () {});
+}, 20000);
+</script>
+</body>
+</html>
